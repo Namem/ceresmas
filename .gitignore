@@ -1,0 +1,26 @@
+# --- Python & Compilados ---
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- Ambiente Virtual (NÃO SUBIR) ---
+.venv/
+venv/
+env/
+
+# --- Variáveis de Ambiente (SEGURANÇA CRÍTICA) ---
+# Aqui está sua API KEY do Google. Se subir isso, o Google bloqueia sua conta.
+.env
+
+# --- Banco de Dados & Docker ---
+# Não queremos subir os dados brutos do Postgres
+pgdata/
+*.log
+
+# --- IDE / Editor ---
+.vscode/
+.idea/
+
+# --- Sistema Operacional ---
+Thumbs.db
+Desktop.ini

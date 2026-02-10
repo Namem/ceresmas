@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: ceres_postgres  # <--- MUDAR AQUI
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: ceres_db         # <--- MUDAR AQUI (Nome do novo banco)
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: ceres_pgadmin   # <--- MUDAR AQUI
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@ceres.com # <--- MUDAR AQUI (Cosmético)
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
