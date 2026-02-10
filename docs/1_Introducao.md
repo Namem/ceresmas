@@ -1,33 +1,31 @@
 # 1. INTRODUÇÃO
 
-O agronegócio brasileiro, embora reconhecido mundialmente por sua eficiência em latifúndios e commodities, apresenta uma dicotomia tecnológica severa. Enquanto grandes produtores utilizam agricultura de precisão, drones e sistemas de ERP (Enterprise Resource Planning) robustos, o pequeno e médio produtor opera, frequentemente, em um vácuo de gestão dados.
+O agronegócio brasileiro representa um dos pilares fundamentais da economia nacional. No entanto, observa-se uma disparidade tecnológica significativa: enquanto grandes latifúndios adotam a Agricultura 4.0 com sensores IoT e sistemas ERP (Enterprise Resource Planning) robustos, o pequeno e médio produtor opera, frequentemente, com baixa maturidade digital.
 
-Este Trabalho de Conclusão de Curso propõe o desenvolvimento do **Ceres MAS**, um sistema baseado em Arquitetura Multiagente (MAS) e Processamento de Linguagem Natural (PLN), desenhado para mitigar a assimetria de informações financeiras e comerciais na agricultura familiar e de médio porte.
+A gestão dessas propriedades envolve variáveis complexas e interdependentes: ciclos biológicos, flutuações de mercado e controle financeiro. A ausência de ferramentas adequadas leva à tomada de decisões baseada na intuição, resultando em ineficiência produtiva e vulnerabilidade econômica.
 
-## 1.1 Contextualização e Problema
-A gestão de uma propriedade rural envolve variáveis complexas: biológicas (safra, pragas), financeiras (fluxo de caixa, custos de insumos) e comerciais (volatilidade de preços). Em entrevista preliminar realizada com engenheiros agrônomos atuantes no setor, identificou-se que a principal dor do pequeno produtor não é agronômica, mas gerencial.
+Este trabalho propõe o desenvolvimento do **Ceres MAS**, um sistema baseado em Arquitetura Multiagente e Inteligência Artificial Generativa, projetado para democratizar a gestão agrícola de alta precisão através de interfaces de linguagem natural.
 
-O problema central abordado neste trabalho é a **"Caixa Preta Financeira"**: o desconhecimento do Custo Real de Produção. Sem ferramentas adequadas, o produtor mistura finanças pessoais com as da safra, realiza compras de insumos sem planejamento de fluxo de caixa e desconhece sua margem de lucro real por talhão.
+## 1.1. Definição do Problema
 
-Concomitantemente, existe um problema de **Desconexão Comercial**. A oferta do pequeno produtor é fragmentada, dificultando o atendimento à demanda de qualidade e frequência exigida pelos grandes compradores (supermercados e indústrias), resultando em vendas a preços subvalorizados para intermediários.
+A pesquisa identificou dois problemas críticos que afetam a sustentabilidade do médio produtor, validados através de entrevistas com engenheiros agrônomos:
 
-## 1.2 Justificativa
-A Engenharia da Computação pode oferecer soluções de baixo custo computacional para este cenário através de Sistemas Multiagentes. Diferente de softwares monolíticos tradicionais que exigem preenchimento manual rigoroso (formulários complexos), agentes inteligentes equipados com LLMs (Large Language Models) podem interagir via linguagem natural, reduzindo a barreira de entrada tecnológica.
+1.  **A "Caixa Preta Financeira":** A inexistência de dados estruturados sobre o custo real de produção. O produtor desconhece a margem de lucro por talhão ou safra, misturando finanças pessoais com as da atividade rural, e realiza compras de insumos sem planejamento de fluxo de caixa.
+2.  **Desconexão Comercial e Técnica:** A dificuldade em conectar a oferta fragmentada do produtor com a demanda qualificada do mercado, somada à dificuldade de acesso rápido a manuais técnicos e boas práticas de manejo atualizadas.
 
-A escolha por uma arquitetura MAS justifica-se pela natureza distribuída do problema:
-1.  **Agente Financeiro:** Monitora custos de forma autônoma.
-2.  **Agente Agronômico:** Gerencia o calendário biológico.
-3.  **Agente Comercial:** Busca oportunidades de mercado.
+## 1.2. Objetivos
 
-Esta abordagem permite desacoplar as complexidades, facilitando a manutenção e a escalabilidade do sistema.
+### 1.2.1. Objetivo Geral
+Desenvolver e validar um protótipo de software baseado em Sistemas Multiagentes (MAS) que utilize modelos de linguagem (LLMs) para automatizar a gestão financeira, técnica e comercial de propriedades rurais, convertendo linguagem natural em dados estruturados e ações estratégicas.
 
-## 1.3 Objetivos
+### 1.2.2. Objetivos Específicos
+* **Implementar uma arquitetura de microsserviços** utilizando Docker e Python, garantindo a persistência de dados em banco relacional (PostgreSQL).
+* **Desenvolver um Agente Financeiro** capaz de interpretar mensagens informais (ex: via chat) e realizar o lançamento contábil (SQL) categorizado automaticamente.
+* **Desenvolver um Agente Agronômico** utilizando a técnica RAG (Retrieval-Augmented Generation) para fornecer suporte técnico baseado em literatura oficial (Embrapa).
+* **Validar a eficácia do sistema** através de simulações de cenários reais, analisando a precisão da interpretação da IA e a integridade dos dados gerados.
 
-### 1.3.1 Objetivo Geral
-Desenvolver e validar um protótipo funcional de um Sistema Multiagente (Ceres MAS MAS) capaz de extrair custos de produção a partir de linguagem natural e orquestrar o planejamento de safra com oportunidades comerciais.
+## 1.3. Justificativa
 
-### 1.3.2 Objetivos Específicos
-* **Implementar uma arquitetura de Agentes Inteligentes** utilizando a biblioteca CrewAI e modelos Gemini, segregando responsabilidades de finanças, agronomia e vendas.
-* **Desenvolver um módulo de RAG (Retrieval-Augmented Generation)** para permitir que os agentes consultem manuais técnicos e boas práticas agrícolas.
-* **Criar ferramentas determinísticas (Tools)** para cálculo de custos, garantindo que a IA generativa não alucine em operações matemáticas.
-* **Validar a eficácia do sistema** comparando os custos apurados pelo Agente Financeiro com o método manual tradicional (planilhas), utilizando dados reais de safras passadas.
+A Engenharia da Computação oferece, através dos avanços recentes em IA Generativa (como a API Gemini do Google), a oportunidade de criar interfaces homem-máquina mais intuitivas. Sistemas tradicionais baseados em formulários rígidos falham em engajar o produtor rural.
+
+A escolha por uma arquitetura Multiagente justifica-se pela necessidade de especialização: segregar as responsabilidades (Finanças, Agronomia, Vendas) em agentes autônomos facilita a manutenção do código, a escalabilidade do sistema e permite que cada módulo utilize ferramentas (*Tools*) específicas para sua função, garantindo maior determinismo e confiabilidade nas operações críticas.
