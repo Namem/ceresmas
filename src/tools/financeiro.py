@@ -1,7 +1,8 @@
 from crewai.tools import tool
 from sqlalchemy.orm import Session
-from database_models import engine, CustoProducao, CategoriaCusto, CicloSafra
+from src.database.models import engine, CustoProducao, CategoriaCusto, CicloSafra
 from datetime import datetime
+
 
 class FerramentasFinanceiras:
     

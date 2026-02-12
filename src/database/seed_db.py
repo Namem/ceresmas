@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from database_models import engine, Produtor, Propriedade, Talhao, CicloSafra, StatusCiclo, Base
+from src.database.models import engine, Produtor, Propriedade, Talhao, CicloSafra, StatusCiclo, Base
 
 def popular_banco():
     # Cria uma sessão temporária

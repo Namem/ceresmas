@@ -1,7 +1,8 @@
 import os
 from crewai import Agent, Task, Crew, Process, LLM
 from dotenv import load_dotenv
-from tools_financeiro import FerramentasFinanceiras
+#from tools.tools_financeiro import FerramentasFinanceiras
+from src.tools.financeiro import FerramentasFinanceiras
 
 load_dotenv()
 
