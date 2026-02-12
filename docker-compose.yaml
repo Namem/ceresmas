@@ -16,7 +16,7 @@ services:
 
   pgadmin:
     image: dpage/pgadmin4
-    container_name: ceres_pgadmin   # <--- MUDAR AQUI
+    container_name: ceres_pgadmin   # <--- MUDAR AQUIcls
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@ceres.com # <--- MUDAR AQUI (Cosmético)
       PGADMIN_DEFAULT_PASSWORD: admin

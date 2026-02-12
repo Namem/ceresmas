@@ -3,11 +3,14 @@ from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, 
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 from datetime import datetime
 import enum
+from dotenv import load_dotenv
 
 # --- CONFIGURAÇÃO ---
 # String de conexão: driver://usuario:senha@host:porta/nome_banco
 # Nota: Como estamos rodando o script DO WINDOWS (fora do docker) apontando para o Docker, usamos 'localhost'
-DATABASE_URL = "postgresql://admin:admin123@localhost:5432/ceres_db"
+
+load_dotenv()
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://admin:admin123@localhost:5432/ceres_db")
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

@@ -24,3 +24,10 @@ pgdata/
 # --- Sistema Operacional ---
 Thumbs.db
 Desktop.ini
+
+
+.env
+__pycache__/
+chroma_db/
+*.pyc
+.DS_Store
