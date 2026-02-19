@@ -1,6 +1,6 @@
 import os
 from langchain_community.vectorstores import Chroma
-from langchain_community.embeddings import HuggingFaceEmbeddings # <--- MUDANÇA AQUI
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from crewai.tools import tool
 
 BASE_DIR = os.getcwd()
@@ -11,20 +11,24 @@ class RagTools:
     def search_knowledge_base(query: str):
         """
         Utilize esta ferramenta para buscar informações técnicas sobre:
-        - Pragas e doenças de hortaliças (tomate, alface, etc).
+        - Pragas e doenças de hortaliças.
         - Manejo, adubação e clima.
-        - Dados técnicos da Embrapa.
+        Use termos específicos na busca (ex: "controle lagarta helicoverpa tomate").
         """
         if not os.path.exists(DB_PATH):
-            return "Erro: Base de conhecimento não encontrada."
+            return "Erro: Base de conhecimento não encontrada. Execute o ingest_pdf.py."
 
-        # ATENÇÃO: O modelo aqui deve ser IGUAL ao da ingestão
         embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-        
         db = Chroma(persist_directory=DB_PATH, embedding_function=embeddings)
         
-        # Busca
-        results = db.similarity_search(query, k=3)
-        context = "\n\n".join([doc.page_content for doc in results])
+        # MUDANÇA CRÍTICA: search_type="mmr" e k=5 para mais contexto
+        # fetch_k=10 busca 10 candidatos e seleciona os 5 mais diversos
+        retriever = db.as_retriever(
+            search_type="mmr", 
+            search_kwargs={"k": 5, "fetch_k": 10, "lambda_mult": 0.5} 
+        )
         
-        return f"FONTES OFICIAIS EMBRAPA (Model Local):\n{context}"
+        docs = retriever.invoke(query)
+        context = "\n---\n".join([doc.page_content for doc in docs])
+        
+        return f"FONTES OFICIAIS EMBRAPA (RAG Local MMR):\n{context}"

@@ -3,68 +3,55 @@ from crewai import Agent, Task, Crew, Process, LLM
 from src.tools.rag_tool import RagTools
 
 class AgronomoAgent:
-    """
-    Classe responsável por instanciar o Agente Agrônomo e suas tarefas.
-    """
-
-    def criar_agente(self):
-        # CONFIGURAÇÃO DO CÉREBRO (LLM)
-        # Usamos a classe nativa LLM do CrewAI para evitar erros de compatibilidade.
-        # O modelo "gemini/gemini-1.5-flash" é o mais estável e rápido para RAG.
+    def executar(self, pergunta: str):
+        # Configuração do LLM
         llm_engine = LLM(
-            model="gemini/gemini-2.5-flash",
+            model="gemini-2.5-flash",
             api_key=os.getenv("GOOGLE_API_KEY")
         )
 
-        return Agent(
-            role='Engenheiro Agrônomo Sênior (Especialista em Hortaliças)',
-            goal='Fornecer diagnósticos precisos e planos de manejo baseados EXCLUSIVAMENTE em manuais da Embrapa.',
+        # 1. Definição do Agente
+        agente = Agent(
+            role='Técnico Extensionista Watson (Ceres MAS)',
+            goal='Realizar diagnóstico consultivo e recomendar manejos baseados nos manuais da Embrapa.',
             backstory="""
-                Você é o Engenheiro Agronomo Watson, um especialista com 20 anos de experiência 
-                em Olericultura (Hortaliças) no clima tropical de Sorriso-MT.
-                
-                Sua missão é ajudar pequenos produtores rurais a resolverem problemas de pragas, 
-                doenças e manejo nutricional.
-                
-                SUAS REGRAS DE OURO (SISTEMA DE SEGURANÇA):
-                1. Você NÃO "acha" nada. Você consulta a base de conhecimento.
-                2. Ao responder, você DEVE citar a fonte técnica (Ex: "Segundo o Manual da Embrapa...").
-                3. Se a informação não estiver na base, diga: "Não encontrei dados oficiais sobre isso nos manuais carregados".
-                4. Seja didático, mas tecnicamente rigoroso. O produtor precisa entender, mas a solução deve ser científica.
+                Você é o Watson, técnico agrícola que atua no Cinturão Verde de Sorriso-MT. 
+                Sua fala é simples e direta (coloquial regional), mas seu embasamento é 100% científico.
+
+                DIRETRIZES DE COMPORTAMENTO:
+                1. DIAGNÓSTICO ANTES DA PRESCRIÇÃO: Se o produtor disser algo genérico como "estou com lagarta" ou "minha planta está morrendo", você NÃO deve dar a solução de imediato. Você deve perguntar: qual a variedade da cultura? Qual o tipo da praga (cor, tamanho)? Quais os sintomas específicos? 
+                2. LINGUAJAR: Evite termos excessivamente acadêmicos. Fale "adubação" em vez de "aporte nutricional edáfico".
+                3. RIGOR TÉCNICO: Após entender o problema, cite EXPLICITAMENTE o manual da Embrapa utilizado.
+                4. LIMITAÇÃO: Se for um animal ou planta fora da base de dados, informe que não possui dados oficiais para aquela cultura específica.
             """,
             verbose=True,
             allow_delegation=False,
-            tools=[RagTools().search_knowledge_base], # Ferramenta de RAG Local
+            tools=[RagTools().search_knowledge_base],
             llm=llm_engine
         )
 
-    def responder_duvida(self, pergunta: str):
-        """
-        Cria a tarefa (Task) e executa o processo de raciocínio.
-        """
-        agente = self.criar_agente()
-
-        task_diagnostico = Task(
+        # 2. Definição da Tarefa
+        task_consultiva = Task(
             description=f"""
-                Analise a seguinte dúvida do produtor rural de Sorriso-MT:
-                "{pergunta}"
+                Dúvida do produtor: "{pergunta}"
                 
-                PASSOS PARA EXECUÇÃO:
-                1. Use a ferramenta 'Consultar Manuais Embrapa' para buscar o contexto técnico sobre a dúvida.
-                2. Analise as informações recuperadas dos PDFs.
-                3. Formule uma resposta técnica, citando o manejo correto.
-                4. Se houver recomendação química ou biológica, cite as dosagens se disponíveis no texto.
+                Protocolo Ceres MAS:
+                1. AVALIAÇÃO DE ESPECIFICIDADE: A pergunta contém cultura e praga/sintoma específicos? 
+                   - Se NÃO (ex: só "ajuda com lagarta"): Responda ao produtor explicando que precisa saber qual é a planta e como é a lagarta para não recomendar o remédio errado.
+                   - Se SIM: Siga para o passo 2.
+                2. PESQUISA: Use a ferramenta 'Consultar Manuais Embrapa'.
+                3. RESPOSTA: Formule um plano de ação prático. Se houver dosagem, seja exato.
             """,
-            expected_output="Um parecer técnico formatado, citando as fontes da Embrapa e sugerindo ações práticas.",
+            expected_output="Uma interação consultiva (pedido de mais dados) OU um parecer técnico definitivo com fontes.",
             agent=agente
         )
 
+        # 3. Execução
         crew = Crew(
             agents=[agente],
-            tasks=[task_diagnostico],
+            tasks=[task_consultiva],
             process=Process.sequential,
             verbose=True
         )
 
-        result = crew.kickoff()
-        return result
+        return crew.kickoff()
