@@ -1,32 +1,55 @@
 import os
 from crewai import Agent, Task, Crew, Process, LLM
-from src.tools.financeiro import FerramentasFinanceiras # Assumindo que essa tool existe
-from dotenv import load_dotenv
-
-load_dotenv()
+from src.tools.financeiro import FerramentasFinanceiras
 
 class FinanceiroAgent:
     def executar(self, texto_produtor: str):
-        my_llm = LLM(model="gemini/gemini-2.5-flash", api_key=os.getenv("GOOGLE_API_KEY"))
+        # LISTA DE FALLBACK (Baseada no painel real do Google AI Studio)
+        modelos_fallback = [
+            "gemini/gemini-2.5-flash-lite",
+            "gemini/gemini-3-flash",
+            "gemini/gemini-2.5-flash"
+        ]
 
-        agente = Agent(
-            role='Gerente Financeiro Ceres',
-            goal='Registrar custos agrícolas com precisão contábil (ACID).',
-            backstory='Contador especializado que converte linguagem natural em SQL.',
-            verbose=True,
-            llm=my_llm,
-            tools=[FerramentasFinanceiras.registrar_custo]
-        )
+        for modelo_atual in modelos_fallback:
+            try:
+                llm_engine = LLM(
+                    model=modelo_atual,
+                    api_key=os.getenv("GOOGLE_API_KEY")
+                )
 
-        task = Task(
-            description=f"""
-            Input: "{texto_produtor}"
-            1. Extraia: Item, Valor, Quantidade, Unidade, Categoria.
-            2. Use a tool 'Registrar Custo' para persistir no PostgreSQL.
-            """,
-            expected_output="Confirmação de registro contábil.",
-            agent=agente
-        )
+                agente_financas = Agent(
+                    role='Gerente Financeiro Ceres',
+                    goal='Registrar custos agrícolas com precisão contábil.',
+                    backstory='Você é um contador especializado em agronegócio. Você recebe mensagens informais de produtores no WhatsApp e lança no sistema ERP.',
+                    verbose=True,
+                    memory=False, # Financeiro avalia cada custo de forma isolada
+                    llm=llm_engine,
+                    tools=[FerramentasFinanceiras.registrar_custo]
+                )
 
-        crew = Crew(agents=[agente], tasks=[task], process=Process.sequential)
-        return crew.kickoff()
+                tarefa = Task(
+                    description=f"""
+                    O produtor enviou a seguinte mensagem: "{texto_produtor}"
+                    
+                    1. Interprete o texto e extraia: Item, Valor, Quantidade, Unidade e Categoria.
+                    2. USE A TOOL 'Registrar Custo' para persistir no PostgreSQL.
+                    3. Responda confirmando o registro de forma amigável.
+                    """,
+                    expected_output="Confirmação de registro contábil.",
+                    agent=agente_financas
+                )
+
+                crew = Crew(
+                    agents=[agente_financas],
+                    tasks=[tarefa],
+                    process=Process.sequential
+                )
+
+                return crew.kickoff().raw
+
+            except Exception as e:
+                print(f"⚠️ [FALLBACK FINANCEIRO] Falha no modelo {modelo_atual}. Tentando o próximo... Erro: {str(e)[:50]}")
+                continue
+
+        return "Opa, não consegui registrar essa despesa agora devido a uma falha na conexão com o banco de dados. Tenta de novo daqui a pouco!"

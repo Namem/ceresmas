@@ -31,3 +31,5 @@ __pycache__/
 chroma_db/
 *.pyc
 .DS_Store
+
+.\docker-compose.yaml
