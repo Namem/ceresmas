@@ -4,7 +4,6 @@ from src.tools.financeiro import FerramentasFinanceiras
 
 class FinanceiroAgent:
     def executar(self, texto_produtor: str):
-        # LISTA DE FALLBACK (Baseada no painel real do Google AI Studio)
         modelos_fallback = [
             "gemini/gemini-2.5-flash-lite",
             "gemini/gemini-3-flash",
@@ -20,23 +19,27 @@ class FinanceiroAgent:
 
                 agente_financas = Agent(
                     role='Gerente Financeiro Ceres',
-                    goal='Registrar custos agrícolas com precisão contábil.',
-                    backstory='Você é um contador especializado em agronegócio. Você recebe mensagens informais de produtores no WhatsApp e lança no sistema ERP.',
+                    goal='Gerenciar os custos agrícolas, registrando novas despesas e calculando relatórios de Custo Operacional Efetivo (COE).',
+                    backstory='Você é um contador especializado em agronegócio. Você é metódico. Se o produtor mandar um gasto, você registra. Se ele pedir um balanço, você calcula o COE.',
                     verbose=True,
-                    memory=False, # Financeiro avalia cada custo de forma isolada
+                    memory=False, 
                     llm=llm_engine,
-                    tools=[FerramentasFinanceiras.registrar_custo]
+                    # ATENÇÃO AQUI: Adicionamos a nova tool na lista!
+                    tools=[FerramentasFinanceiras.registrar_custo, FerramentasFinanceiras.calcular_coe]
                 )
 
                 tarefa = Task(
                     description=f"""
                     O produtor enviou a seguinte mensagem: "{texto_produtor}"
                     
-                    1. Interprete o texto e extraia: Item, Valor, Quantidade, Unidade e Categoria.
-                    2. USE A TOOL 'Registrar Custo' para persistir no PostgreSQL.
-                    3. Responda confirmando o registro de forma amigável.
+                    REGRA DE SISTEMA ABSOLUTA: Você NÃO PODE responder com suposições ou pedir dados se a intenção for uma consulta. Você DEVE acionar uma ferramenta.
+                    
+                    - Se a mensagem relatar um NOVO GASTO (ex: "comprei", "paguei"): Use a ferramenta 'registrar_custo'.
+                    - Se a mensagem pedir um RESUMO, TOTAL ou RELATÓRIO (ex: "quanto gastei", "puxa o total"): Use OBRIGATORIAMENTE a ferramenta 'consultar_relatorio_coe' passando o argumento filtro="todos".
+                    
+                    Após receber os dados reais do banco de dados através da ferramenta, formate-os e apresente ao produtor.
                     """,
-                    expected_output="Confirmação de registro contábil.",
+                    expected_output="Relatório numérico gerado pela ferramenta ou confirmação de registro.",
                     agent=agente_financas
                 )
 
@@ -52,4 +55,4 @@ class FinanceiroAgent:
                 print(f"⚠️ [FALLBACK FINANCEIRO] Falha no modelo {modelo_atual}. Tentando o próximo... Erro: {str(e)[:50]}")
                 continue
 
-        return "Opa, não consegui registrar essa despesa agora devido a uma falha na conexão com o banco de dados. Tenta de novo daqui a pouco!"
+        return "Opa, meus sistemas contábeis estão fora do ar. Tenta de novo daqui a pouco!"

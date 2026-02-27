@@ -2,7 +2,8 @@ from crewai.tools import tool
 from sqlalchemy.orm import Session
 from src.database.models import engine, CustoProducao, CategoriaCusto, CicloSafra
 from datetime import datetime
-
+from sqlalchemy import func
+from src.database.models import SessionLocal, CustoProducao
 
 class FerramentasFinanceiras:
     
@@ -63,3 +64,39 @@ class FerramentasFinanceiras:
             return f"❌ ERRO SQL: {str(e)}"
         finally:
             session.close()
+    
+    @tool("consultar_relatorio_coe")
+    def calcular_coe(filtro: str = "todos") -> str:
+        """
+        Utilize esta ferramenta SEMPRE que o produtor perguntar sobre:
+        - O total de gastos/custos.
+        - O fechamento do mês/safra.
+        - Relatório de despesas ou COE (Custo Operacional Efetivo).
+        A ferramenta vai no banco de dados, soma tudo e devolve um relatório preciso.
+        """
+        db = SessionLocal()
+        try:
+            total_coe = db.query(func.sum(CustoProducao.valor_total)).scalar() or 0.0
+
+            if total_coe == 0:
+                return "Aviso: Ainda não há custo de produção registrados no sitemas"
+        
+            custo_por_categoria = db.query(
+                CustoProducao.categoria,
+                func.sum(CustoProducao.valor_total)).group_by(CustoProducao.categoria).all()
+            
+            relatorio = f"Relatório do Custo Operacional Efetivo (COE):\n"
+            relatorio += f"CUSTO TOTAL ACUMULADO: R$ {total_coe:.2f}\n\n"
+            relatorio += "Detalhamento por Categoria:\n"
+            
+            for categoria, valor in custo_por_categoria:
+                nome_cat = categoria.name.replace ("_"," ")
+                relatorio += f"- {nome_cat}: R$ {valor:.2f}\n"
+            
+            return relatorio
+        
+        except Exception as e:
+            return f"Erro ao acessar o banco de dados para cálculo: {e}"
+        finally:
+            db.close()
+            
